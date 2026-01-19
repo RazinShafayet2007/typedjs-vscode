@@ -1,0 +1,49 @@
+{
+    "name": "typedjs-vscode",
+    "displayName": "TypedJS",
+    "description": "Language support and validation for TypedJS",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Linters"
+    ],
+    "extensionDependencies": [
+        "dbaeumer.vscode-eslint"
+    ],
+    "main": "./extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "typedjs",
+                "aliases": [
+                    "TypedJS",
+                    "typedjs"
+                ],
+                "extensions": [
+                    ".js"
+                ]
+            }
+        ],
+        "grammars": [
+            {
+                "language": "typedjs",
+                "scopeName": "source.typedjs",
+                "path": "./syntaxes/typedjs.tmLanguage.json"
+            }
+        ],
+        "configuration": {
+            "title": "TypedJS",
+            "properties": {}
+        }
+    },
+    "dependencies": {
+        "acorn": "^8.15.0",
+        "acorn-typescript": "^1.4.13"
+    },
+    "devDependencies": {
+        "eslint": "^8.57.1"
+    }
+}

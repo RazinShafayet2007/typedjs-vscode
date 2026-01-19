@@ -1,0 +1,10 @@
+{
+    "name": "TypedJS",
+    "scopeName": "source.typedjs",
+    "injectionSelector": "L:source.js",
+    "patterns": [
+      {
+        "include": "source.ts"
+      }
+    ]
+  }
