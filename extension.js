@@ -63,6 +63,8 @@ function activate(context) {
         provideHover(document, position, token) {
             const range = document.getWordRangeAtPosition(position);
             const word = document.getText(range);
+            
+            console.log('Hover triggered for:', word);
 
             if (!word) {
                 return undefined;
@@ -86,35 +88,70 @@ function activate(context) {
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
 
-                // Check for Interface
-                if (line.includes(`interface ${word}`)) {
-                    matchedLine = line.trim(); // Just the header for now, or could capture block
+                // matches: interface Name
+                if (new RegExp(`^\\s*interface\\s+${word}\\b`).test(line)) {
+                    // Capture the full interface block
+                    let braceCount = 0;
+                    let blockLines = [];
+                    for (let j = i; j < lines.length; j++) {
+                        blockLines.push(lines[j]);
+                        braceCount += (lines[j].match(/{/g) || []).length;
+                        braceCount -= (lines[j].match(/}/g) || []).length;
+                        if (braceCount === 0 && blockLines.length > 0) {
+                            break;
+                        }
+                    }
+                    matchedLine = blockLines.join('\n');
                     type = 'interface';
                     break;
                 }
-                // Check for Type Alias
-                if (line.includes(`type ${word}`)) {
+                // matches: type Name =
+                if (new RegExp(`^\\s*type\\s+${word}\\b`).test(line)) {
                     matchedLine = line.trim();
                     type = 'type';
                     break;
                 }
-                 // Check for Function
-                 if (line.match(new RegExp(`function\\s+${word}\\s*\\(`))) {
+                // matches: function Name(
+                if (new RegExp(`^\\s*function\\s+${word}\\s*\\(`).test(line)) {
                     matchedLine = line.trim();
                     type = 'function';
                     break;
                 }
-                // Check for Variables
-                if (line.match(new RegExp(`(const|let|var)\\s+${word}\\s*=`)) || line.match(new RegExp(`(const|let|var)\\s+${word}\\s*:`))) {
-                     matchedLine = line.trim();
-                     type = 'variable';
-                     break;
-                 }
+                // matches: const/let/var Name = or Name :
+                if (new RegExp(`^\\s*(const|let|var)\\s+${word}\\b\\s*[:=]`).test(line)) {
+                    // Check if this is an object assignment (contains {)
+                    if (line.includes('{')) {
+                        // Capture the full object block
+                        let braceCount = 0;
+                        let blockLines = [];
+                        for (let j = i; j < lines.length; j++) {
+                            blockLines.push(lines[j]);
+                            braceCount += (lines[j].match(/{/g) || []).length;
+                            braceCount -= (lines[j].match(/}/g) || []).length;
+                            if (braceCount === 0 && blockLines.length > 0) {
+                                break;
+                            }
+                        }
+                        matchedLine = blockLines.join('\n');
+                    } else {
+                        matchedLine = line.trim();
+                    }
+                    type = 'variable';
+                    break;
+                }
             }
 
+            console.log('Match found:', matchedLine);
+
             if (matchedLine) {
+                // Strip single-line comments (// ...)
+                const cleanedLine = matchedLine
+                    .split('\n')
+                    .map(l => l.replace(/\/\/.*$/, '').trimEnd())
+                    .join('\n');
+                
                 const md = new vscode.MarkdownString();
-                md.appendCodeblock(matchedLine, 'typedjs');
+                md.appendCodeblock(cleanedLine, 'typedjs');
                 md.appendMarkdown(`**(${type})**`);
                 return new vscode.Hover(md);
             }

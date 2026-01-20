@@ -13,6 +13,9 @@
     "extensionDependencies": [
         "dbaeumer.vscode-eslint"
     ],
+    "activationEvents": [
+        "onLanguage:typedjs"
+    ],
     "main": "./extension.js",
     "contributes": {
         "languages": [
