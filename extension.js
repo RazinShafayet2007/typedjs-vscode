@@ -33,6 +33,30 @@ function activate(context) {
         // Tell ESLint where to look for rule definitions
         "rulePaths": [ path.join(pluginPath, 'rules') ]
     }, vscode.ConfigurationTarget.Workspace);
+
+    // 3. Register Basic Autocompletion Provider
+    const provider = vscode.languages.registerCompletionItemProvider('typedjs', {
+        provideCompletionItems(document, position, token, context) {
+            // Basic keywords
+            const keywords = [
+                'interface', 'type', 'function', 'const', 'let', 'var', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export'
+            ];
+            
+            // Basic types
+            const types = [
+                'string', 'number', 'boolean', 'any', 'void', 'object', 'undefined', 'null'
+            ];
+
+            const completions = [
+                ...keywords.map(k => new vscode.CompletionItem(k, vscode.CompletionItemKind.Keyword)),
+                ...types.map(t => new vscode.CompletionItem(t, vscode.CompletionItemKind.Class)) // Class Icon looks like a type
+            ];
+
+            return completions;
+        }
+    });
+
+    context.subscriptions.push(provider);
 }
 
 function deactivate() {}

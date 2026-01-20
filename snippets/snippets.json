@@ -1,0 +1,25 @@
+{
+    "Interface Declaration": {
+        "prefix": "interface",
+        "body": [
+            "interface ${1:InterfaceName} {",
+            "\t${2:property}: ${3:type};",
+            "}"
+        ],
+        "description": "Create a new TypedJS interface"
+    },
+    "Type Alias": {
+        "prefix": "type",
+        "body": [
+            "type ${1:TypeName} = ${2:TargetType};"
+        ],
+        "description": "Create a new TypedJS type alias"
+    },
+    "Console Log": {
+        "prefix": "log",
+        "body": [
+            "console.log('${1:message}', ${2:value});"
+        ],
+        "description": "Log to console"
+    }
+}

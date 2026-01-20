@@ -37,7 +37,13 @@
         "configuration": {
             "title": "TypedJS",
             "properties": {}
-        }
+        },
+        "snippets": [
+            {
+                "language": "typedjs",
+                "path": "./snippets/snippets.json"
+            }
+        ]
     },
     "dependencies": {
         "acorn": "^8.15.0",
