@@ -4,6 +4,10 @@
     "description": "Language support and validation for TypedJS",
     "publisher": "RazinShafayet",
     "icon": "images/icon.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/RazinShafayet2007/typedjs-vscode.git"
+    },
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.80.0"
