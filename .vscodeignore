@@ -1,0 +1,21 @@
+# Exclude development files
+.vscode/**
+.git/**
+.gitignore
+*.vsix
+
+# Exclude test/verification files
+verify_parser.js
+
+# Exclude package lock (not needed for extension)
+package-lock.json
+
+# Exclude source maps and TypeScript source
+**/*.map
+**/*.ts
+!**/*.d.ts
+
+# Exclude documentation source (README is fine)
+CHANGELOG.md
+
+# Note: node_modules is included because the extension needs acorn at runtime
