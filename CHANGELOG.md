@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.0.2] - 2026-01-23
+
+### Changed
+
+- 🧹 Removed redundant `activationEvents` from `package.json` - VS Code now auto-generates these from contribution declarations
+
+---
+
 ## [0.0.1] - 2026-01-23
 
 ### Added
@@ -38,5 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [GitHub Repository](https://github.com/RazinShafayet2007/typedjs-vscode)
 - [Report Issues](https://github.com/RazinShafayet2007/typedjs-vscode/issues)
 
-[Unreleased]: https://github.com/RazinShafayet2007/typedjs-vscode/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/RazinShafayet2007/typedjs-vscode/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/RazinShafayet2007/typedjs-vscode/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/RazinShafayet2007/typedjs-vscode/releases/tag/v0.0.1
