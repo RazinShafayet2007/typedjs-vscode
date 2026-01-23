@@ -1,6 +1,6 @@
 {
     "name": "typedjs-vscode",
-    "displayName": "TypedJS - Runtime Type Checking",
+    "displayName": "TypedJS",
     "description": "Bring TypeScript-like types to JavaScript with runtime validation",
     "publisher": "razinshafayet",
     "icon": "images/icon.png",
