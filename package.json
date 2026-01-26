@@ -31,9 +31,6 @@
         "type-checking",
         "typedjs"
     ],
-    "extensionDependencies": [
-        "dbaeumer.vscode-eslint"
-    ],
     "main": "./extension.js",
     "contributes": {
         "languages": [
@@ -44,7 +41,7 @@
                     "typedjs"
                 ],
                 "extensions": [
-                    ".js"
+                    ".tjs"
                 ],
                 "configuration": "./language-configuration.json"
             }
@@ -60,6 +57,18 @@
             "title": "TypedJS",
             "properties": {}
         },
+        "configurationDefaults": {
+            "eslint.probe": [
+                "javascript",
+                "javascriptreact",
+                "typescript",
+                "typescriptreact",
+                "html",
+                "vue",
+                "markdown",
+                "typedjs"
+            ]
+        },
         "snippets": [
             {
                 "language": "typedjs",
@@ -69,9 +78,8 @@
     },
     "dependencies": {
         "acorn": "^8.15.0",
-        "acorn-typescript": "^1.4.13"
-    },
-    "devDependencies": {
+        "acorn-typescript": "^1.4.13",
         "eslint": "^8.57.1"
-    }
+    },
+    "devDependencies": {}
 }

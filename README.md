@@ -27,7 +27,7 @@ code --install-extension razinshafayet.typedjs-vscode
 
 ### 3. Write TypedJS Code
 
-Create a `.js` file and change language mode to **TypedJS** (bottom-right corner):
+Create a `.tjs` file and change language mode to **TypedJS** (bottom-right corner):
 ```javascript
 interface User {
     name: string;
@@ -46,20 +46,20 @@ console.log(user);
 
 **Development Mode** (with runtime type checking):
 ```bash
-typedjs app.js
+typedjs app.tjs
 ```
 
 **Production Mode** (types stripped for performance):
 ```bash
-typedjs app.js --prod
+typedjs app.tjs --prod
 ```
 
 ---
 
 ## ✨ Features
 
-- 🎨 **Syntax Highlighting** - Colorful, readable code for TypedJS annotations
-- ✅ **Type Validation** - Integrated linting catches type errors in the editor
+- 🎨 **Syntax Highlighting** - Colorful, readable code for `.tjs` files
+- ✅ **Type Validation** - Integrated internal linter catches type errors in the editor
 - 📝 **Code Snippets** - Quick scaffolding for interfaces, types, and more
 - 💡 **IntelliSense** - Smart autocompletion for keywords and types
 - 🔍 **Hover Information** - View type definitions on hover
@@ -157,6 +157,7 @@ The runtime and CLI tool for executing TypedJS code.
 - 🔧 Simplified extension activation for cleaner ESLint integration
 
 **Changed:**
+- 🔄 **File Extension Update** - Changed default extension from `.js` to `.tjs`
 - 📦 Improved ESLint bundle strategy for better user experience
 - 🎨 Extension now works immediately after installation
 

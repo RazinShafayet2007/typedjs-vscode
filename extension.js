@@ -1,32 +1,90 @@
 const vscode = require('vscode');
+const { Linter } = require('eslint');
+const path = require('path');
+const fs = require('fs');
+
+// Import local validation logic
+const parser = require('./server/parser');
+const noOpRule = require('./server/rules/no-op');
+
+// Diagnostic Collection
+let diagnosticCollection;
 
 function activate(context) {
     console.log('TypedJS Extension is active!');
 
-    // Check for ESLint extension (but don't block if missing)
-    const eslintExtension = vscode.extensions.getExtension('dbaeumer.vscode-eslint');
-    
-    if (!eslintExtension) {
-        vscode.window.showWarningMessage(
-            'TypedJS works best with ESLint extension. Install it for full type validation.',
-            'Install ESLint'
-        ).then(selection => {
-            if (selection === 'Install ESLint') {
-                vscode.commands.executeCommand('workbench.extensions.installExtension', 'dbaeumer.vscode-eslint');
-            }
-        });
+    // Initialize Diagnostics
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('typedjs');
+    context.subscriptions.push(diagnosticCollection);
+
+    // Initialize Linter
+    const linter = new Linter();
+    linter.defineParser('typedjs-parser', parser);
+    linter.defineRule('typedjs/no-op', noOpRule);
+
+    const lintConfig = {
+        parser: 'typedjs-parser',
+        rules: {
+            'typedjs/no-op': 'error' // Ensure our rule runs
+        },
+        env: {
+            es6: true
+        }
+    };
+
+    // Validation Function
+    function validateTextDocument(document) {
+        if (document.languageId !== 'typedjs') {
+            return;
+        }
+
+        const text = document.getText();
+        try {
+            const messages = linter.verify(text, lintConfig);
+
+            const diagnostics = messages.map(msg => {
+                const range = new vscode.Range(
+                    new vscode.Position(msg.line - 1, msg.column - 1),
+                    new vscode.Position(msg.endLine ? msg.endLine - 1 : msg.line - 1, msg.endColumn ? msg.endColumn - 1 : msg.column)
+                );
+
+                const severity = msg.severity === 2 ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
+
+                const diagnostic = new vscode.Diagnostic(range, msg.message, severity);
+                diagnostic.source = 'typedjs';
+                diagnostic.code = msg.ruleId;
+
+                return diagnostic;
+            });
+
+            diagnosticCollection.set(document.uri, diagnostics);
+
+        } catch (err) {
+            console.error('Linting failed:', err);
+        }
     }
 
-    // Register autocompletion (works without ESLint)
-    const provider = vscode.languages.registerCompletionItemProvider('typedjs', {
+    // Event Listeners for Validation
+    context.subscriptions.push(
+        vscode.workspace.onDidOpenTextDocument(validateTextDocument),
+        vscode.workspace.onDidChangeTextDocument(event => validateTextDocument(event.document)),
+        vscode.workspace.onDidSaveTextDocument(validateTextDocument),
+        vscode.workspace.onDidCloseTextDocument(doc => diagnosticCollection.delete(doc.uri))
+    );
+
+    // Initial validation of open documents
+    vscode.workspace.textDocuments.forEach(validateTextDocument);
+
+    // Register autocompletion (Basic keyword/type support)
+    const completionProvider = vscode.languages.registerCompletionItemProvider('typedjs', {
         provideCompletionItems(document, position, token, context) {
             const keywords = [
-                'interface', 'type', 'function', 'const', 'let', 'var', 
+                'interface', 'type', 'function', 'const', 'let', 'var',
                 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export'
             ];
-            
+
             const types = [
-                'string', 'number', 'boolean', 'any', 'void', 'object', 
+                'string', 'number', 'boolean', 'any', 'void', 'object',
                 'undefined', 'null', 'Array', 'Map', 'Set'
             ];
 
@@ -37,15 +95,19 @@ function activate(context) {
         }
     });
 
-    context.subscriptions.push(provider);
+    context.subscriptions.push(completionProvider);
 
-    // Register hover provider (works without ESLint)
+    // Register hover provider with safer Regex
     const hoverProvider = vscode.languages.registerHoverProvider('typedjs', {
         provideHover(document, position, token) {
             const range = document.getWordRangeAtPosition(position);
-            const word = document.getText(range);
+            if (!range) return undefined;
 
+            const word = document.getText(range);
             if (!word) return undefined;
+
+            // Escape special regex characters to prevent errors
+            const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
             const text = document.getText();
             const lines = text.split('\n');
@@ -56,7 +118,8 @@ function activate(context) {
                 const line = lines[i];
 
                 // Match interface
-                if (new RegExp(`^\\s*interface\\s+${word}\\b`).test(line)) {
+                // Use strict regex for better accuracy
+                if (new RegExp(`^\\s*interface\\s+${escapedWord}\\b`).test(line)) {
                     let braceCount = 0;
                     let blockLines = [];
                     for (let j = i; j < lines.length; j++) {
@@ -69,23 +132,23 @@ function activate(context) {
                     type = 'interface';
                     break;
                 }
-                
+
                 // Match type alias
-                if (new RegExp(`^\\s*type\\s+${word}\\b`).test(line)) {
+                if (new RegExp(`^\\s*type\\s+${escapedWord}\\b`).test(line)) {
                     matchedLine = line.trim();
                     type = 'type';
                     break;
                 }
-                
+
                 // Match function
-                if (new RegExp(`^\\s*function\\s+${word}\\s*\\(`).test(line)) {
+                if (new RegExp(`^\\s*function\\s+${escapedWord}\\s*\\(`).test(line)) {
                     matchedLine = line.trim();
                     type = 'function';
                     break;
                 }
-                
+
                 // Match variable
-                if (new RegExp(`^\\s*(const|let|var)\\s+${word}\\b\\s*[:=]`).test(line)) {
+                if (new RegExp(`^\\s*(const|let|var)\\s+${escapedWord}\\b\\s*[:=]`).test(line)) {
                     if (line.includes('{')) {
                         let braceCount = 0;
                         let blockLines = [];
@@ -109,9 +172,9 @@ function activate(context) {
                     .split('\n')
                     .map(l => l.replace(/\/\/.*$/, '').trimEnd())
                     .join('\n');
-                
+
                 const md = new vscode.MarkdownString();
-                md.appendCodeblock(cleanedLine, 'javascript');
+                md.appendCodeblock(cleanedLine, 'javascript'); // Using javascript highlighting for now
                 md.appendMarkdown(`\n\n**(${type})**`);
                 return new vscode.Hover(md);
             }
@@ -121,8 +184,40 @@ function activate(context) {
     });
 
     context.subscriptions.push(hoverProvider);
+
+    // Optional: Check if eslint is installed in workspace for user's own scripts
+    // Only prompts if package.json exists but eslint is missing, to follow user's request.
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders) {
+        const rootPath = workspaceFolders[0].uri.fsPath;
+        const packageJsonPath = path.join(rootPath, 'package.json');
+
+        if (fs.existsSync(packageJsonPath)) {
+            // Check if eslint is in package.json
+            try {
+                const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+                const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
+                if (!allDeps.eslint) {
+                    vscode.window.showInformationMessage('Would you like to install ESLint for CLI support?', 'Yes', 'No').then(sel => {
+                        if (sel === 'Yes') {
+                            const term = vscode.window.createTerminal('TypedJS Setup');
+                            term.show();
+                            term.sendText('npm install eslint --save-dev');
+                        }
+                    });
+                }
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+    }
 }
 
-function deactivate() {}
+function deactivate() {
+    if (diagnosticCollection) {
+        diagnosticCollection.clear();
+        diagnosticCollection.dispose();
+    }
+}
 
 module.exports = { activate, deactivate };
