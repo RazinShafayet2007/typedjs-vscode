@@ -69,8 +69,7 @@
                 "typescriptreact",
                 "html",
                 "vue",
-                "markdown",
-                "typedjs"
+                "markdown"
             ]
         },
         "snippets": [
