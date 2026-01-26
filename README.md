@@ -121,8 +121,10 @@ function greet(name: string): string {
 - **Node.js** 14.0.0 or newer (for TypedJS CLI)
 - **TypedJS CLI** - Install with: `npm install -g @razinshafayet/typedjs`
 
-Optional but recommended:
-- [ESLint Extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+**Required Extensions:**
+- **ESLint extension** - Installs automatically when you install TypedJS
+- Provides type validation in the editor
+- No manual configuration needed!
 
 ## 🐛 Known Issues
 
@@ -141,6 +143,22 @@ Please report issues on [GitHub](https://github.com/RazinShafayet2007/typedjs-vs
 The runtime and CLI tool for executing TypedJS code.
 
 ## 📋 Release Notes
+
+### 0.0.4 (January 26, 2026)
+
+**Added:**
+- 🔄 Seamless ESLint integration - ESLint now bundled with extension
+- ⚙️ Automatic ESLint configuration - zero setup required
+- 🛡️ Comprehensive .gitignore with all necessary exclusions
+
+**Fixed:**
+- 🐛 Fixed ESLint installation - moved to dependencies for proper bundling
+- 🚫 Eliminated unwanted .vscode/settings.json auto-generation
+- 🔧 Simplified extension activation for cleaner ESLint integration
+
+**Changed:**
+- 📦 Improved ESLint bundle strategy for better user experience
+- 🎨 Extension now works immediately after installation
 
 ### 0.0.3 (January 24, 2025)
 

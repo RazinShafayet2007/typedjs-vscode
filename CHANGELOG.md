@@ -5,9 +5,23 @@ All notable changes to the **TypedJS** VS Code extension will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
 
-<!-- Add upcoming changes here -->
+## [0.0.4] - 2026-01-26
+
+### Added
+- 🔄 **Seamless ESLint Integration** - ESLint now bundled with extension for automatic setup
+- ⚙️ **Automatic Configuration** - ESLint discovers custom parser without user intervention
+- 🎯 **Zero-Configuration Setup** - No manual ESLint settings required for users
+- 🛡️ **Improved Git Ignore** - Comprehensive .gitignore with all necessary exclusions
+
+### Fixed
+- 🐛 **Fixed ESLint Installation** - Moved ESLint to dependencies for proper bundling
+- 🚫 **No More Auto-Generated Settings** - Eliminated unwanted .vscode/settings.json creation
+- 🔧 **Simplified Extension Activation** - Cleaner ESLint integration without manual configuration
+
+### Changed
+- 📦 **ESLint Bundle Strategy** - ESLint now included in extension dependencies
+- 🎨 **Improved User Experience** - Extension works immediately after installation
 
 ---
 
