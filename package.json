@@ -44,6 +44,10 @@
                     "TypedJS",
                     "typedjs"
                 ],
+                "icon": {
+                    "light": "./images/javascript.svg",
+                    "dark": "./images/javascript.svg"
+                },
                 "extensions": [
                     ".tjs"
                 ],
