@@ -4,7 +4,7 @@ module.exports = [
   {
     files: ["**/*.js"],
     languageOptions: {
-      parser: path.resolve(__dirname, './server/parser.js'),
+      parser: require('./server/parser.js'),
       ecmaVersion: 2024,
       sourceType: "module"
     },
