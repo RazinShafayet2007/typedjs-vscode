@@ -142,6 +142,59 @@ Please report issues on [GitHub](https://github.com/RazinShafayet2007/typedjs-vs
 
 The runtime and CLI tool for executing TypedJS code.
 
+**ESLint Plugin for TypedJS** - [GitHub](https://github.com/RazinShafayet2007/eslint-plugin-typedjs)
+
+Standalone ESLint plugin for TypedJS with CLI support. Use this for CI/CD integration or if you prefer standalone linting.
+
+### ESLint Plugin CLI Usage
+
+**Installation:**
+```bash
+npm install -g eslint-plugin-typedjs
+```
+
+**Basic Usage:**
+```bash
+# Lint a single file
+typedjs-eslint app.tjs
+
+# Lint a directory
+typedjs-eslint src/
+
+# Lint and fix issues
+typedjs-eslint --fix app.tjs
+
+# Lint files matching pattern
+typedjs-eslint "*.tjs"
+
+# Show help
+typedjs-eslint --help
+
+# Show version
+typedjs-eslint --version
+```
+
+**Integration with existing ESLint:**
+```javascript
+// eslint.config.js
+module.exports = [
+  {
+    files: ["**/*.tjs", "**/*.js"],
+    languageOptions: {
+      parser: require('eslint-plugin-typedjs/lib/parser'),
+      ecmaVersion: 2024,
+      sourceType: "module"
+    },
+    plugins: {
+      typedjs: require('eslint-plugin-typedjs')
+    },
+    rules: {
+      "typedjs/no-op": "error"
+    }
+  }
+];
+```
+
 ## 📋 Release Notes
 
 ### 0.0.4 (January 26, 2026)

@@ -1,7 +1,5 @@
 const vscode = require('vscode');
 const { Linter } = require('eslint');
-const path = require('path');
-const fs = require('fs');
 
 // Import local validation logic
 const parser = require('./server/parser');
@@ -185,32 +183,7 @@ function activate(context) {
 
     context.subscriptions.push(hoverProvider);
 
-    // Optional: Check if eslint is installed in workspace for user's own scripts
-    // Only prompts if package.json exists but eslint is missing, to follow user's request.
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (workspaceFolders) {
-        const rootPath = workspaceFolders[0].uri.fsPath;
-        const packageJsonPath = path.join(rootPath, 'package.json');
 
-        if (fs.existsSync(packageJsonPath)) {
-            // Check if eslint is in package.json
-            try {
-                const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-                const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
-                if (!allDeps.eslint) {
-                    vscode.window.showInformationMessage('Would you like to install ESLint for CLI support?', 'Yes', 'No').then(sel => {
-                        if (sel === 'Yes') {
-                            const term = vscode.window.createTerminal('TypedJS Setup');
-                            term.show();
-                            term.sendText('npm install eslint --save-dev');
-                        }
-                    });
-                }
-            } catch (e) {
-                // Ignore parse errors
-            }
-        }
-    }
 }
 
 function deactivate() {
