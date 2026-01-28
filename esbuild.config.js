@@ -7,7 +7,7 @@ esbuild.build({
   platform: 'node',
   target: 'node14',
   format: 'cjs',
-  external: ['vscode'],
+  external: ['vscode', 'eslint'],
   minify: true,
   sourcemap: false,
   treeShaking: true
