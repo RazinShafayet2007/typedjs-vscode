@@ -22,6 +22,5 @@ CHANGELOG.md
 node_modules/**
 src/
 esbuild.config.js
-extension.js
 server/
 **/*.d.ts
