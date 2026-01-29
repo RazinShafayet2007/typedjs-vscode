@@ -8,7 +8,6 @@ const TypedJSParser = acorn.Parser.extend(tsPlugin);
 
 module.exports = {
   parseForESLint(code, options = {}) {
-    // 1. Initialize arrays to collect tokens and comments
     const tokens = [];
     const comments = [];
 
@@ -18,22 +17,38 @@ module.exports = {
       sourceType: "module",
       locations: true,
       ranges: true,
-      // 2. Pass these arrays to Acorn to populate them during parsing
       onToken: tokens,
       onComment: comments
     };
 
-    const ast = TypedJSParser.parse(code, parseOptions);
+    try {
+      const ast = TypedJSParser.parse(code, parseOptions);
 
-    // 3. Explicitly attach the collected tokens and comments to the AST
-    ast.tokens = tokens;
-    ast.comments = comments;
+      // Attach tokens and comments
+      ast.tokens = tokens;
+      ast.comments = comments;
 
-    return {
-      ast,
-      services: {},
-      visitorKeys: TypedJSParser.acorn.visitorKeys || acorn.visitorKeys,
-      scopeManager: null
-    };
+      return {
+        ast,
+        services: {},
+        visitorKeys: TypedJSParser.acorn.visitorKeys || acorn.visitorKeys,
+        scopeManager: null
+      };
+    } catch (error) {
+      // Return valid structure even on parse errors
+      console.error('TypedJS parse error:', error);
+      return {
+        ast: {
+          type: 'Program',
+          body: [],
+          sourceType: 'module',
+          tokens: [],
+          comments: []
+        },
+        services: {},
+        visitorKeys: acorn.visitorKeys,
+        scopeManager: null
+      };
+    }
   }
 };

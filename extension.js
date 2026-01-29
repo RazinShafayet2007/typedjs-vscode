@@ -1,56 +1,61 @@
 const vscode = require('vscode');
 const { Linter } = require('eslint');
 
-// Import local validation logic
 const parser = require('./server/parser');
 const noOpRule = require('./server/rules/no-op');
 
-// Diagnostic Collection
 let diagnosticCollection;
 
 function activate(context) {
     console.log('TypedJS Extension is active!');
 
-    // Initialize Diagnostics
     diagnosticCollection = vscode.languages.createDiagnosticCollection('typedjs');
     context.subscriptions.push(diagnosticCollection);
 
-    // Initialize Linter
     const linter = new Linter();
     linter.defineParser('typedjs-parser', parser);
     linter.defineRule('typedjs/no-op', noOpRule);
 
     const lintConfig = {
         parser: 'typedjs-parser',
-        rules: {
-            'typedjs/no-op': 'error' // Ensure our rule runs
+        parserOptions: {
+            ecmaVersion: 2024,
+            sourceType: 'module'
         },
-        env: {
-            es6: true
+        rules: {
+            'typedjs/no-op': 'error'
         }
     };
 
-    // Validation Function
     function validateTextDocument(document) {
         if (document.languageId !== 'typedjs') {
+            diagnosticCollection.delete(document.uri);
             return;
         }
 
         const text = document.getText();
+
         try {
             const messages = linter.verify(text, lintConfig);
 
             const diagnostics = messages.map(msg => {
                 const range = new vscode.Range(
-                    new vscode.Position(msg.line - 1, msg.column - 1),
-                    new vscode.Position(msg.endLine ? msg.endLine - 1 : msg.line - 1, msg.endColumn ? msg.endColumn - 1 : msg.column)
+                    new vscode.Position(Math.max(0, msg.line - 1), Math.max(0, msg.column - 1)),
+                    new vscode.Position(
+                        Math.max(0, (msg.endLine || msg.line) - 1),
+                        Math.max(0, msg.endColumn || msg.column)
+                    )
                 );
 
-                const severity = msg.severity === 2 ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
+                const severity = msg.severity === 2
+                    ? vscode.DiagnosticSeverity.Error
+                    : vscode.DiagnosticSeverity.Warning;
 
                 const diagnostic = new vscode.Diagnostic(range, msg.message, severity);
                 diagnostic.source = 'typedjs';
-                diagnostic.code = msg.ruleId;
+                if (msg.ruleId) {
+                    diagnostic.code = msg.ruleId;
+                }
 
                 return diagnostic;
             });
@@ -58,32 +63,43 @@ function activate(context) {
             diagnosticCollection.set(document.uri, diagnostics);
 
         } catch (err) {
-            console.error('Linting failed:', err);
+            console.error('TypedJS validation error:', err);
+            // Show parse errors as diagnostics
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(0, 0, 0, 0),
+                `Parse error: ${err.message}`,
+                vscode.DiagnosticSeverity.Error
+            );
+            diagnostic.source = 'typedjs';
+            diagnosticCollection.set(document.uri, [diagnostic]);
         }
     }
 
-    // Event Listeners for Validation
+    // Event listeners
     context.subscriptions.push(
         vscode.workspace.onDidOpenTextDocument(validateTextDocument),
-        vscode.workspace.onDidChangeTextDocument(event => validateTextDocument(event.document)),
+        vscode.workspace.onDidChangeTextDocument(e => validateTextDocument(e.document)),
         vscode.workspace.onDidSaveTextDocument(validateTextDocument),
         vscode.workspace.onDidCloseTextDocument(doc => diagnosticCollection.delete(doc.uri))
     );
 
-    // Initial validation of open documents
+    // Initial validation
     vscode.workspace.textDocuments.forEach(validateTextDocument);
 
-    // Register autocompletion (Basic keyword/type support)
+    // Completion provider
     const completionProvider = vscode.languages.registerCompletionItemProvider('typedjs', {
-        provideCompletionItems(document, position, token, context) {
+        provideCompletionItems() {
             const keywords = [
-                'interface', 'type', 'function', 'const', 'let', 'var',
-                'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export'
+                'interface', 'type', 'enum', 'function', 'const', 'let', 'var',
+                'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export',
+                'async', 'await', 'try', 'catch', 'finally'
             ];
 
             const types = [
-                'string', 'number', 'boolean', 'any', 'void', 'object',
-                'undefined', 'null', 'Array', 'Map', 'Set'
+                'string', 'number', 'boolean', 'any', 'void', 'never', 'unknown',
+                'object', 'undefined', 'null', 'bigint', 'symbol',
+                'Array', 'Map', 'Set', 'Promise', 'Record', 'Partial', 'Required',
+                'Readonly', 'Pick', 'Omit'
             ];
 
             return [
@@ -95,18 +111,16 @@ function activate(context) {
 
     context.subscriptions.push(completionProvider);
 
-    // Register hover provider with safer Regex
+    // Hover provider (keep existing implementation)
     const hoverProvider = vscode.languages.registerHoverProvider('typedjs', {
-        provideHover(document, position, token) {
+        provideHover(document, position) {
             const range = document.getWordRangeAtPosition(position);
             if (!range) return undefined;
 
             const word = document.getText(range);
             if (!word) return undefined;
 
-            // Escape special regex characters to prevent errors
             const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
             const text = document.getText();
             const lines = text.split('\n');
             let matchedLine = null;
@@ -115,8 +129,6 @@ function activate(context) {
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
 
-                // Match interface
-                // Use strict regex for better accuracy
                 if (new RegExp(`^\\s*interface\\s+${escapedWord}\\b`).test(line)) {
                     let braceCount = 0;
                     let blockLines = [];
@@ -131,21 +143,32 @@ function activate(context) {
                     break;
                 }
 
-                // Match type alias
                 if (new RegExp(`^\\s*type\\s+${escapedWord}\\b`).test(line)) {
                     matchedLine = line.trim();
                     type = 'type';
                     break;
                 }
 
-                // Match function
+                if (new RegExp(`^\\s*enum\\s+${escapedWord}\\b`).test(line)) {
+                    let braceCount = 0;
+                    let blockLines = [];
+                    for (let j = i; j < lines.length; j++) {
+                        blockLines.push(lines[j]);
+                        braceCount += (lines[j].match(/{/g) || []).length;
+                        braceCount -= (lines[j].match(/}/g) || []).length;
+                        if (braceCount === 0 && blockLines.length > 0) break;
+                    }
+                    matchedLine = blockLines.join('\n');
+                    type = 'enum';
+                    break;
+                }
+
                 if (new RegExp(`^\\s*function\\s+${escapedWord}\\s*\\(`).test(line)) {
                     matchedLine = line.trim();
                     type = 'function';
                     break;
                 }
 
-                // Match variable
                 if (new RegExp(`^\\s*(const|let|var)\\s+${escapedWord}\\b\\s*[:=]`).test(line)) {
                     if (line.includes('{')) {
                         let braceCount = 0;
@@ -172,7 +195,7 @@ function activate(context) {
                     .join('\n');
 
                 const md = new vscode.MarkdownString();
-                md.appendCodeblock(cleanedLine, 'javascript'); // Using javascript highlighting for now
+                md.appendCodeblock(cleanedLine, 'typescript');
                 md.appendMarkdown(`\n\n**(${type})**`);
                 return new vscode.Hover(md);
             }
@@ -182,8 +205,6 @@ function activate(context) {
     });
 
     context.subscriptions.push(hoverProvider);
-
-
 }
 
 function deactivate() {

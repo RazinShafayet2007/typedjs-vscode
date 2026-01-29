@@ -1,7 +1,7 @@
 {
     "name": "typedjs-vscode",
     "displayName": "TypedJS",
-    "description": "Bring TypeScript-like types to JavaScript with runtime validation",
+    "description": "Comprehensive TypeScript-compatible type system for JavaScript with runtime validation",
     "publisher": "razinshafayet",
     "icon": "images/icon.png",
     "repository": {
@@ -13,7 +13,7 @@
     },
     "homepage": "https://github.com/RazinShafayet2007/typedjs-vscode#readme",
     "license": "MIT",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "engines": {
         "vscode": "^1.80.0"
     },
@@ -29,13 +29,14 @@
         "runtime",
         "validation",
         "type-checking",
-        "typedjs"
+        "typedjs",
+        "enums",
+        "generics",
+        "tuples",
+        "unions",
+        "intersections"
     ],
-    "main": "./dist/extension.js",
-    "scripts": {
-        "build": "node esbuild.config.js",
-        "package": "npm run build && vsce package"
-    },
+    "main": "./extension.js",
     "contributes": {
         "languages": [
             {
@@ -44,10 +45,6 @@
                     "TypedJS",
                     "typedjs"
                 ],
-                "icon": {
-                    "light": "./images/javascript.svg",
-                    "dark": "./images/javascript.svg"
-                },
                 "extensions": [
                     ".tjs"
                 ],
@@ -65,17 +62,6 @@
             "title": "TypedJS",
             "properties": {}
         },
-        "configurationDefaults": {
-            "eslint.probe": [
-                "javascript",
-                "javascriptreact",
-                "typescript",
-                "typescriptreact",
-                "html",
-                "vue",
-                "markdown"
-            ]
-        },
         "snippets": [
             {
                 "language": "typedjs",
@@ -88,7 +74,5 @@
         "acorn-typescript": "^1.4.13",
         "eslint": "^8.57.1"
     },
-    "devDependencies": {
-        "esbuild": "^0.27.2"
-    }
+    "devDependencies": {}
 }
